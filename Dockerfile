@@ -22,6 +22,7 @@ ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
 # Clone rlzr repo
 RUN git clone https://github.com/cborbonm/RLZR.git rlzr
+RUN cd rlzr && git checkout setup && cd ..
 
 # Start Go Repo
 RUN go mod init rlzr
