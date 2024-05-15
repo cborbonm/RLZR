@@ -1,1 +1,5 @@
+package rlzr
 
+func InitParams() {
+
+}
