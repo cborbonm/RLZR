@@ -1,4 +1,4 @@
-package lzr
+package rlzr
 
 import (
 	"bufio"
@@ -175,7 +175,7 @@ func ConstructPcapRoutine(workers int) chan *packet_metadata {
 	}
 
 	// Handle packet monitoring
-	go LoadHandlePacket()
+	go LoadHandlePacket(pcap_queue)
 
 	return pcap_routine
 }

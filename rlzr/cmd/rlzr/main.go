@@ -1,7 +1,7 @@
 package main
 
-import "repo-cs244-lzr/repo-cs244-rlzr/rlzr/bin"
+import "rlzr/rbin"
 
-func main() {
-	bin.RLZRMain()
+func Main() {
+	rbin.RLZRMain()
 }
