@@ -2,6 +2,6 @@ package main
 
 import "rlzr/rbin"
 
-func Main() {
+func main() {
 	rbin.RLZRMain()
 }
