@@ -4,4 +4,10 @@ tmp
 temp
 *.csv
 cmd/lzr/lzr
+lzr
 data/
+
+# RLZR
+## Executables
+rlzr/rlzr
+rlzr/cmd/rlzr/rlzr
