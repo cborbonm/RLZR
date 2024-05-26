@@ -2,159 +2,44 @@ package rlzr
 
 import (
 	"log"
-	"time"
+	//"time"
 )
 
-// // packet_metadata represents metadata for a network packet.
-// type packet_metadata struct {
-// 	SYN    bool
-// 	ACK    bool
-// 	RST    bool
-// 	FIN    bool
-// 	Data   []byte
-// 	Sport  int
-// 	Dport  int
-// 	counter int
-// 	timestamp time.Time
-// }
-
-// // options represents configuration options for packet handling.
-// type options struct {
-// 	// Add relevant fields here
-// }
-
-// // pState represents the state of a packet processing system.
-// type pState struct {
-// 	// Add relevant fields here
-// }
-
-// // incrementCounter increments the counter for a packet.
-// func (p *packet_metadata) incrementCounter() {
-// 	p.counter++
-// }
-
-// // updateTimestamp updates the timestamp of a packet.
-// func (p *packet_metadata) updateTimestamp() {
-// 	p.timestamp = time.Now()
-// }
-
-// // validationFail marks a packet as having failed validation.
-// func (p *packet_metadata) validationFail() {
-// 	// Add relevant implementation here
-// }
-
-// // setHyperACKtive sets the HyperACKtive status of a packet.
-// func (p *packet_metadata) setHyperACKtive(ackingFirewall bool) {
-// 	// Add relevant implementation here
-// }
-
-// // updateResponse updates the response type for a packet.
-// func (p *packet_metadata) updateResponse(responseType string) {
-// 	// Add relevant implementation here
-// }
-
-// // syncHandshakeNum synchronizes the handshake number for a packet.
-// func (p *packet_metadata) syncHandshakeNum(handshakeNum int) {
-// 	// Add relevant implementation here
-// }
-
-// // verifyScanningIP verifies if the packet's IP is valid for scanning.
-// func (ps *pState) verifyScanningIP(packet *packet_metadata) bool {
-// 	// Add relevant implementation here
-// 	return true
-// }
-
-// // getHyperACKtiveStatus gets the HyperACKtive status of a packet.
-// func (ps *pState) getHyperACKtiveStatus(packet *packet_metadata) bool {
-// 	// Add relevant implementation here
-// 	return false
-// }
-
-// // getHandshake gets the handshake number for a packet.
-// func (ps *pState) getHandshake(packet *packet_metadata) int {
-// 	// Add relevant implementation here
-// 	return 0
-// }
-
-// // updateAck updates the acknowledgment status of a packet.
-// func (ps *pState) updateAck(packet *packet_metadata) {
-// 	// Add relevant implementation here
-// }
-
-// // updateData updates the data state of a packet.
-// func (ps *pState) updateData(packet *packet_metadata) {
-// 	// Add relevant implementation here
-// }
-
-// // remove removes a packet from the state.
-// func (ps *pState) remove(packet *packet_metadata) *packet_metadata {
-// 	// Add relevant implementation here
-// 	return packet
-// }
-
-// // getEphemeralRespNum gets the ephemeral response number for a packet.
-// func (ps *pState) getEphemeralRespNum(packet *packet_metadata) int {
-// 	// Add relevant implementation here
-// 	return 0
-// }
-
-// // incEphemeralResp increments the ephemeral response number for a packet.
-// func (ps *pState) incEphemeralResp(packet *packet_metadata, sport int) {
-// 	// Add relevant implementation here
-// }
-
-// // getParentSport gets the parent source port for a packet.
-// func (ps *pState) getParentSport(packet *packet_metadata) int {
-// 	// Add relevant implementation here
-// 	return 0
-// }
-
-// // handle represents a mock handle object with a WritePacketData method.
-// var handle = struct {
-// 	WritePacketData func(data []byte) error
-// }{
-// 	WritePacketData: func(data []byte) error {
-// 		// Mock implementation here
-// 		return nil
-// 	},
-// }
-
-// // constructRST constructs a RST packet.
-// func constructRST(packet *packet_metadata) []byte {
-// 	// Add relevant implementation here
-// 	return []byte{}
-// }
-
-// // ForceAllHandshakes forces all handshakes to be handled.
-// func ForceAllHandshakes() bool {
-// 	// Add relevant implementation here
-// 	return false
-// }
-
-// // handleExpired handles expired packets.
-// func handleExpired(opts *options, packet *packet_metadata, ipMeta *pState, timeoutQueue chan *packet_metadata, writingQueue chan packet_metadata) {
-// 	// Add relevant implementation here
-// }
-
-// // HyperACKtiveFiltering checks if HyperACKtive filtering is enabled.
-// func HyperACKtiveFiltering() bool {
-// 	// Add relevant implementation here
-// 	return false
-// }
-
-// // getNumFilters gets the number of filters for HyperACKtive.
-// func getNumFilters() int {
-// 	// Add relevant implementation here
-// 	return 0
-// }
-
-// // SendAck sends an acknowledgment packet.
-// func SendAck(opts *options, packet *packet_metadata, ipMeta *pState, timeoutQueue chan *packet_metadata, retransmitQueue chan *packet_metadata, writingQueue chan packet_metadata, toACK, toPUSH bool, responseType string) {
-// 	// Add relevant implementation here
-// }
+func SendAck( opts *options, synack  *packet_metadata, ipMeta * rCMap,
+timeoutQueue  chan *packet_metadata, retransmitQueue chan *packet_metadata,
+writingQueue  chan packet_metadata, toACK bool, toPUSH bool, expectedResponse string ) {
 
 
-func closeConnection(packet *packet_metadata, ipMeta *pState, writingQueue chan packet_metadata, write bool, ackingFirewall bool) {
+	if synack.windowZero() {
+		//not a real s/a
+		writingQueue <- *synack
+		return
+	}
+
+	//grab which handshake
+	handshakeNum := ipMeta.getHandshake(synack)
+	handshake, _ := GetHandshake( opts.Handshakes[ handshakeNum ] )
+
+	//Send Ack with Data
+	ack, payload := constructData( handshake, synack, toACK, toPUSH )//true, false )
+	//add to map
+	synack.updateResponse( expectedResponse )//ACK )
+	synack.updateResponseL( payload )
+	synack.updateTimestamp()
+	ipMeta.update( synack )
+	err := handle.WritePacketData(ack)
+	if err != nil {
+		log.Fatal(err)
+		panic(err)
+	}
+
+	synack.updateTimestamp()
+	retransmitQueue <-synack
+	return
+
+}
+
+func closeConnection(packet *packet_metadata, ipMeta *rCMap, writingQueue chan packet_metadata, write bool, ackingFirewall bool) {
 	rst := constructRST(packet)
 	err := handle.WritePacketData(rst)
 	if err != nil {
@@ -167,7 +52,7 @@ func closeConnection(packet *packet_metadata, ipMeta *pState, writingQueue chan 
 	}
 }
 
-func HandlePcap(opts *options, packet *packet_metadata, ipMeta *pState, timeoutQueue chan *packet_metadata, retransmitQueue chan *packet_metadata, writingQueue chan packet_metadata) {
+func HandlePcap(opts *options, packet *packet_metadata, ipMeta *rCMap, timeoutQueue chan *packet_metadata, retransmitQueue chan *packet_metadata, writingQueue chan packet_metadata) {
 	verified := ipMeta.verifyScanningIP(packet)
 	if !verified {
 		packet.incrementCounter()

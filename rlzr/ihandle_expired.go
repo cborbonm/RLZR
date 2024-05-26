@@ -19,7 +19,7 @@ import (
 	//"fmt"
 )
 
-func handleExpired( opts *options, packet * packet_metadata, ipMeta * pState,
+func handleExpired( opts *options, packet * packet_metadata, ipMeta * rCMap,
 	timeoutQueue chan *packet_metadata, writingQueue chan packet_metadata ) {
 
 

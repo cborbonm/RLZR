@@ -1,13 +1,17 @@
 package rlzr
 
+import (
+	"strconv"
+	"fmt"
+)
 
-type pState struct {
-    stateMap map[string]*packet_state
-}
+//type rCMap struct {
+//    stateMap map[string]*packet_state
+//}
 
-func NewpState() pState {
-    return pState{stateMap: make(map[string]*packet_state)}
-}
+//func NewpState() rCMap {
+//    return rCMap{stateMap: make(map[string]*packet_state)}
+//}
 
 // construct key functions
 
@@ -21,28 +25,28 @@ func constructParentKey(packet *packet_metadata, parentSport int) string {
 
 // state management functions
 
-func (ipMeta *pState) metaContains(p *packet_metadata) bool {
+func (ipMeta *rCMap) metaContains(p *packet_metadata) bool {
     pKey := constructKey(p)
-    _, ok := ipMeta.stateMap[pKey]
+    _, ok := ipMeta.Get(pKey)
     return ok
 }
 
-// func (ipMeta *pState) find(p *packet_metadata) (*packet_metadata, bool) {
+// func (ipMeta *rCMap) find(p *packet_metadata) (*packet_metadata, bool) {
 // 	return nil, true
 // }
 
 func (ipMeta *rCMap) find(p *packet_metadata) (*packet_metadata, bool) {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         return ps.Packet, ok
     }
     return nil, ok
 }
 
-func (ipMeta *pState) update(p *packet_metadata) {
+func (ipMeta *rCMap) update(p *packet_metadata) {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if !ok {
         ps = &packet_state{
             Packet:       p,
@@ -52,157 +56,157 @@ func (ipMeta *pState) update(p *packet_metadata) {
     } else {
         ps.Packet = p
     }
-    ipMeta.stateMap[pKey] = ps
+    ipMeta.Set(pKey, ps)
 }
 
-func (ipMeta *pState) incHandshake(p *packet_metadata) bool {
+func (ipMeta *rCMap) incHandshake(p *packet_metadata) bool {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         ps.HandshakeNum++
-        ipMeta.stateMap[pKey] = ps
+        ipMeta.Set(pKey, ps)
     }
     return ok
 }
 
-func (ipMeta *pState) updateAck(p *packet_metadata) bool {
+func (ipMeta *rCMap) updateAck(p *packet_metadata) bool {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         ps.Ack = true
-        ipMeta.stateMap[pKey] = ps
+        ipMeta.Set(pKey, ps)
     }
     return ok
 }
 
-func (ipMeta *pState) getAck(p *packet_metadata) bool {
+func (ipMeta *rCMap) getAck(p *packet_metadata) bool {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         return ps.Ack
     }
     return false
 }
 
-func (ipMeta *pState) incEphemeralResp(p *packet_metadata, sport int) bool {
+func (ipMeta *rCMap) incEphemeralResp(p *packet_metadata, sport int) bool {
     pKey := constructParentKey(p, sport)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         ps.EphemeralRespNum++
-        ipMeta.stateMap[pKey] = ps
+        ipMeta.Set(pKey, ps)
     }
     return ok
 }
 
-func (ipMeta *pState) getEphemeralRespNum(p *packet_metadata) int {
+func (ipMeta *rCMap) getEphemeralRespNum(p *packet_metadata) int {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         return ps.EphemeralRespNum
     }
     return 0
 }
 
-func (ipMeta *pState) getHyperACKtiveStatus(p *packet_metadata) bool {
+func (ipMeta *rCMap) getHyperACKtiveStatus(p *packet_metadata) bool {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         return ps.HyperACKtive
     }
     return false
 }
 
-func (ipMeta *pState) setHyperACKtiveStatus(p *packet_metadata) bool {
+func (ipMeta *rCMap) setHyperACKtiveStatus(p *packet_metadata) bool {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         ps.HyperACKtive = true
-        ipMeta.stateMap[pKey] = ps
+        ipMeta.Set(pKey, ps)
     }
     return ok
 }
 
-func (ipMeta *pState) setParentSport(p *packet_metadata, sport int) bool {
+func (ipMeta *rCMap) setParentSport(p *packet_metadata, sport int) bool {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         ps.ParentSport = sport
-        ipMeta.stateMap[pKey] = ps
+        ipMeta.Set(pKey, ps)
     }
     return ok
 }
 
-func (ipMeta *pState) getParentSport(p *packet_metadata) int {
+func (ipMeta *rCMap) getParentSport(p *packet_metadata) int {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         return ps.ParentSport
     }
     return 0
 }
 
-func (ipMeta *pState) recordEphemeral(p *packet_metadata, ephemerals []packet_metadata) bool {
+func (ipMeta *rCMap) recordEphemeral(p *packet_metadata, ephemerals []packet_metadata) bool {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         ps.EphemeralFilters = append(ps.EphemeralFilters, ephemerals...)
-        ipMeta.stateMap[pKey] = ps
+        ipMeta.Set(pKey, ps)
     }
     return ok
 }
 
-func (ipMeta *pState) getEphemeralFilters(p *packet_metadata) ([]packet_metadata, bool) {
+func (ipMeta *rCMap) getEphemeralFilters(p *packet_metadata) ([]packet_metadata, bool) {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         return ps.EphemeralFilters, ok
     }
     return nil, ok
 }
 
-func (ipMeta *pState) updateData(p *packet_metadata) bool {
+func (ipMeta *rCMap) updateData(p *packet_metadata) bool {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         ps.Data = true
-        ipMeta.stateMap[pKey] = ps
+	ipMeta.Set(pKey, ps)
     }
     return ok
 }
 
-func (ipMeta *pState) getData(p *packet_metadata) bool {
+func (ipMeta *rCMap) getData(p *packet_metadata) bool {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         return ps.Data
     }
     return false
 }
 
-func (ipMeta *pState) getHandshake(p *packet_metadata) int {
+func (ipMeta *rCMap) getHandshake(p *packet_metadata) int {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if ok {
         return ps.HandshakeNum
     }
     return 0
 }
 
-func (ipMeta *pState) incrementCounter(p *packet_metadata) bool {
+func (ipMeta *rCMap) incrementCounter(p *packet_metadata) bool {
     pKey := constructKey(p)
-    ps, ok := ipMeta.stateMap[pKey]
+    ps, ok := ipMeta.Get(pKey)
     if !ok {
         return false
     }
     ps.Packet.incrementCounter()
-    ipMeta.stateMap[pKey] = ps
+    ipMeta.Set(pKey, ps)
     return true
 }
 
-func (ipMeta *pState) remove(packet *packet_metadata) *packet_metadata {
+func (ipMeta *rCMap) remove(packet *packet_metadata) *packet_metadata {
     packet.ACKed = ipMeta.getAck(packet)
     packetKey := constructKey(packet)
-    delete(ipMeta.stateMap, packetKey)
+    ipMeta.Remove(packetKey)
     return packet
 }
 
@@ -223,9 +227,9 @@ func verifySA(pMap *packet_metadata, pRecv *packet_metadata) bool {
     return false
 }
 
-func (ipMeta *pState) verifyScanningIP(pRecv *packet_metadata) bool {
+func (ipMeta *rCMap) verifyScanningIP(pRecv *packet_metadata) bool {
     pRecvKey := constructKey(pRecv)
-    ps, ok := ipMeta.stateMap[pRecvKey]
+    ps, ok := ipMeta.Get(pRecvKey)
     if !ok {
         return false
     }
@@ -251,27 +255,3 @@ func (ipMeta *pState) verifyScanningIP(pRecv *packet_metadata) bool {
 
 // TEST
 
-func main() {
-    opts := &options{} // Populate with necessary options
-    ipMeta := ConstructPacketStateMap(opts)
-    
-    // Add test packets
-    pkt := &packet_metadata{
-        Saddr: "192.168.0.1",
-        Sport: 12345,
-        Daddr: "192.168.0.2",
-        Dport: 80,
-        Seqnum: 100,
-        Acknum: 200,
-        SYN: true,
-        ACK: false,
-        Data: []byte{},
-        LZRResponseL: 1,
-    }
-    
-    ipMeta.update(pkt)
-    
-    // Verify packet
-    result := ipMeta.verifyScanningIP(pkt)
-    fmt.Println("Verification Result:", result)
-}

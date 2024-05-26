@@ -1,9 +1,9 @@
 package rlzr
 
-import (
-	"log"
-	"time"
-)
+//import (
+//	"log"
+//	"time"
+//)
 
 // // packet_metadata represents metadata for a network packet.
 // type packet_metadata struct {
@@ -133,7 +133,7 @@ import (
 // }
 
 // SendSyn sends a SYN packet and processes it.
-func SendSyn(packet *packet_metadata, ipMeta *pState, timeoutQueue chan *packet_metadata) {
+func SendSyn(packet *packet_metadata, ipMeta *rCMap, timeoutQueue chan *packet_metadata) {
 	packet.updateResponse("SYN_ACK")
 	packet.updateTimestamp()
 	ipMeta.updateData(packet)
