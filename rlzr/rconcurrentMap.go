@@ -4,12 +4,13 @@ import (
 	"sync"
 )
 
-type pStateShared struct {
-	items        map[string]*packet_state
-	sync.RWMutex // Read Write mutex, guards access to internal map.
-}
+//type pStateShared struct {
+//	items        map[string]*packet_state
+//	sync.RWMutex // Read Write mutex, guards access to internal map.
+//}
 
-type pState []*pStateShared
+//type pState []*pStateShared
+
 
 
 /* NEW START
@@ -47,7 +48,7 @@ func New() rCMap {
 }
 
 /* Returns shard for given key. */
-func (m rCMap) GetShard(key string) *rCMapShared {
+func (m rCMap) GetShard(key string) *rCMapShard {
 	return m[uint(fnv32(key)) % uint(SHARD_COUNT)]
 }
 
@@ -62,7 +63,7 @@ func (m *rCMap) Set(key string, state *packet_state) {
 
 /* Retrieves an element from map under given key. 
  * Returns value AND whether it ws found or not. */
-func (m rCMap) Get(key string) (state *packet_state, bool) {
+func (m rCMap) Get(key string) (state *packet_state, ok bool) {
 	// Get shard
 	shard := m.GetShard(key)
 	shard.RLock()

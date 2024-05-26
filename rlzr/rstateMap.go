@@ -1,29 +1,5 @@
-package lzr
+package rlzr
 
-type packet_metadata struct {
-    Saddr          string
-    Sport          int
-    Daddr          string
-    Dport          int
-    Seqnum         int
-    Acknum         int
-    SYN            bool
-    ACK            bool
-    Data           []byte
-    LZRResponseL   int
-    HyperACKtive   bool
-    ParentSport    int
-    EphemeralFilters []packet_metadata
-}
-
-type packet_state struct {
-    Packet          *packet_metadata
-    Ack             bool
-    HandshakeNum    int
-    EphemeralRespNum int
-    HyperACKtive    bool
-    Data            bool
-}
 
 type pState struct {
     stateMap map[string]*packet_state
@@ -55,7 +31,7 @@ func (ipMeta *pState) metaContains(p *packet_metadata) bool {
 // 	return nil, true
 // }
 
-func (ipMeta *pState) find(p *packet_metadata) (*packet_metadata, bool) {
+func (ipMeta *rCMap) find(p *packet_metadata) (*packet_metadata, bool) {
     pKey := constructKey(p)
     ps, ok := ipMeta.stateMap[pKey]
     if ok {

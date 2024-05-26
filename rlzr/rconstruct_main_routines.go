@@ -187,7 +187,7 @@ Sleep until timeout, and process packet data.
 
 NOTE: pState is dependent on `concurrentMap.go`
 */
-func timeoutAlg(ipMeta *pState, queue chan *packet_metadata, timeoutIncoming chan *packet_metadata,
+func timeoutAlg(ipMeta *rCMap, queue chan *packet_metadata, timeoutIncoming chan *packet_metadata,
 	timeout time.Duration) {
 	// Run anonymous coroutine
 	go func() {
@@ -230,7 +230,7 @@ Create and spawn timeout and retransmit routines for packet channel processing.
 
 NOTE: pState is dependent on `concurrentMap.go`
 */
-func PollTimeoutRoutine(ipMeta *pState, timeoutQueue chan *packet_metadata, retransmitQueue chan *packet_metadata,
+func PollTimeoutRoutine(ipMeta *rCMap, timeoutQueue chan *packet_metadata, retransmitQueue chan *packet_metadata,
 	workers int, timeoutT int, timeoutR int) chan *packet_metadata {
 	// Convert duration time to second for interval routine processing
 	TIMEOUT_T := time.Duration(timeoutT) * time.Second

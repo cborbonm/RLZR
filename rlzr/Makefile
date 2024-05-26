@@ -13,7 +13,7 @@ all: lzr
 
 lzr: $(GO_FILES)
 	@echo $(MAKE_LZR_MSG)
-	cd cmd/rlzr && go build && cd ../..
+	cd cmd/rlzr && go build -buildvcs=false && cd ../..
 	rm -f rlzr
 	ln -s cmd/rlzr/rlzr rlzr
 
