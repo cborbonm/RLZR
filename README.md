@@ -31,6 +31,11 @@ sudo ./lzr --handshakes http,tls
 
 3. Once finished, run `make clean` to clean executables.
 
+## Actually Running on Ola server
+sudo zmap --target-port=80 --output-filter="success = 1 && repeat = 0" \
+-f "saddr,daddr,sport,dport,seqnum,acknum,window" -O json -n 40000 --source-ip=10.129.44.6 --gateway-mac=74:56:3c:fb:86:a5 | \
+sudo ./lzr --handshakes http,tls --sendInterface enp11s0
+
 ## Contributors
 
 - Wilmer Zuna
