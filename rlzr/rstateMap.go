@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+func ConstructPacketStateMap( opts *options ) rCMap {
+	ipMeta := New()
+	return ipMeta
+}
+
 //type rCMap struct {
 //    stateMap map[string]*packet_state
 //}

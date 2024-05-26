@@ -1,7 +1,7 @@
 package main
 
-import "rlzr/rbin"
+import "rlzr/ibin"
 
 func main() {
-	rbin.RLZRMain()
+	ibin.LZRMain()
 }
