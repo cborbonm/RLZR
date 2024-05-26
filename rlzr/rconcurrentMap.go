@@ -120,3 +120,62 @@ func fnv32(key string) uint32 {
 	}
 	return hash
 }
+
+/* FOR PACKET_METADATA TODO MUST REIMPLEMENT THESE. */
+//is Processing for goPackets
+func (m pState) IsStartProcessing( p * packet_metadata ) ( bool,bool ) {
+    // Get shard
+	pKey := constructKey(p)
+    shard := m.GetShard(pKey)
+    shard.Lock()
+    // Get item from shard.
+    p_out, ok := shard.items[pKey]
+    if !ok {
+		shard.Unlock()
+        return false,false
+    }
+	if !p_out.Packet.Processing {
+		p_out.Packet.startProcessing()
+		shard.Unlock()
+		return true,true
+	}
+    shard.Unlock()
+    return true, false
+
+}
+
+func (m pState) StartProcessing( p * packet_metadata ) bool {
+
+    // Get shard
+	pKey := constructKey(p)
+    shard := m.GetShard(pKey)
+    shard.RLock()
+    // See if element is within shard.
+    p_out, ok := shard.items[pKey]
+    if !ok {
+		shard.RUnlock()
+        return false
+    }
+    p_out.Packet.startProcessing()
+    shard.RUnlock()
+    return ok
+
+}
+
+func (m pState) FinishProcessing( p * packet_metadata ) bool {
+
+    // Get shard
+	pKey := constructKey(p)
+    shard := m.GetShard(pKey)
+    shard.Lock()
+    // See if element is within shard.
+    p_out, ok := shard.items[pKey]
+    if !ok {
+		shard.Unlock()
+        return false
+    }
+    p_out.Packet.finishedProcessing()
+	shard.Unlock()
+    return ok
+
+}
