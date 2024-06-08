@@ -2,39 +2,52 @@
 ## Overview
 This project focuses on the re-implementation of the [LZR](https://github.com/stanford-esrg/lzr) module - see website for information on LZR and usage.
 
+The repository is structured as follows:
+- `lzr`: LZR package version as of the time of its publication (August 2021)
+- `rlzr`: RLZR package version.
+
 ## Contribution
 We aim to build `RLZR`, centered around the design of `LZR`. We are specifically focusing on implementing harnessing and end-to-end testing frameworks that can provide clearer metrics for the performance of `RLZR`.
 
+## Requirements
+- Golang
+- ZMap
+- A public IP Address and associated gateway MAC address ([reference](#identifying-machines-ip-address-and-mac-gateway-address))
+
 ## Quick Start
-> NOTE: This repository can only be run in Linux OS. Alternative ways of testing this repository involve Virtual Machines and Docker.
+> NOTE: This repository can only be run in Linux OS.
 
 Start by cloning the repository to your directory of preference:
 ```
 git clone https://github.com/cborbonm/RLZR.git cs244-rlzr
 ```
-Navigate to the `rlzr` in `cs244-rlzr` repository, and set up via Makefile.
-
-1. Run make to retrieve `rlzr` executable via `make`
-> NOTE: You can only run the `rlzr` executable if in Linux OS. Otherwise, you can only run go tests.
-
+Then navigate to `cs244-rlzr`. Set up the repository dependecies via:
 ```
-make all source-ip=256.256.256.256/32
+go mod tidy
 ```
 
-2. Follow [LZR](https://github.com/stanford-esrg/lzr)'s directions on running LZR. Example using random port (9002):
+Next, navigate to the `rlzr` in `cs244-rlzr` repository, and set up via Makefile.
+
+Run make to retrieve `rlzr` executable via `make`
 
 ```
-sudo zmap --target-port=9002 --output-filter="success = 1 && repeat = 0" \
--f "saddr,daddr,sport,dport,seqnum,acknum,window" -O json --source-ip=$source-ip | \
-sudo ./lzr --handshakes http,tls
+make all source-ip=YOURIPADDR
 ```
 
-3. Once finished, run `make clean` to clean executables.
+Follow [LZR](https://github.com/stanford-esrg/lzr)'s directions on running LZR. Example command to scan HTTP handshakes on port 80:
 
-## Actually Running on Ola server
-sudo zmap --target-port=80 --output-filter="success = 1 && repeat = 0" \
--f "saddr,daddr,sport,dport,seqnum,acknum,window" -O json -n 40000 --source-ip=10.129.44.6 --gateway-mac=74:56:3c:fb:86:a5 | \
-sudo ./lzr --handshakes http,tls --sendInterface enp11s0
+```
+sudo zmap --target-port=80 --bandwidth=1G --output-filter="success = 1 && repeat = 0" -f "saddr,daddr,sport,dport,seqnum,acknum,window" -O json --source-ip=YOURIPADDR --gateway-mac=YOURGATEWAYMACADDR -i enp0s9 --blacklist-file=/etc/zmap/blocklist.conf --max-targets 1% | sudo ./rlzr --handshakes http --sendInterface enp0s9
+```
+>NOTE: Make sure to replace each instance of `YOURIPADDR` and `YOURGATEMACADDR` values with your actual associated values.
+
+Once finished, run `make clean` to clean executables.
+
+## Identifying Machine's IP Address and Mac Gateway Address
+Provided you have a Linux machine with a valid IP address, you can retrieve its relevant information via the following:
+- `ip addr show | grep inet`: Identify your machine's valid public IP address.
+- `ip route show`: Identify the line associated with your machine's valid public IP address. Its MAC gateway address is provided as well.
+
 
 ## Contributors
 
